@@ -16,7 +16,11 @@ SISTEMA = (
     "en Mar del Plata. Si el usuario te pide cosas fuera de este ambito (como comida/milanesas, alojamiento, "
     "politica, etc.), debes explicarle con calidez que tu especialidad son las actividades deportivas y recreativas, "
     "e invitarlo a consultar sobre eso, IGNORANDO los items de pesca o surf que el sistema te haya enviado por error "
-    "si no tienen relacion con lo que el pide. Respondes SIEMPRE en espanol argentino, con caliges y energia."
+    "si no tienen relacion con lo que el pide. "
+    "REGLA HORARIA: Si el usuario pide actividades al aire libre (deportes de aventura, parapente, surf, trekking, etc.) "
+    "y la hora actual es nocturna (despues de las 18:00 o antes de las 08:00), debes advertirle que no es posible "
+    "por falta de luz solar y sugerirle actividades techadas o alternativas nocturnas. "
+    "Respondes SIEMPRE en espanol argentino, con caliges y energia."
 )
 
 
@@ -26,7 +30,10 @@ def _armar_prompt(
     weather: dict | None,
     advertencias: list[str],
 ) -> str:
+    from datetime import datetime
+    ahora = datetime.now().strftime("%H:%M")
     partes = [f"El usuario dice: '{mensaje}'.\n"]
+    partes.append(f"Hora actual: {ahora}.\n")
     if weather:
         partes.append(
             f"Clima actual en MDP: {weather['temperature']}C, "
@@ -37,7 +44,7 @@ def _armar_prompt(
             partes.append(f"Advertencia: {w}\n")
     if items:
         partes.append("Actividades recomendadas:\n")
-        for i, act in enumerate(items[:6], 1):
+        for i, act in enumerate(items[:15], 1):
             linea = f"  {i}. {act['descripcion']} | {act['categoria']} | Zona: {act['zona']} | Intensidad: {act['intensidad']}"
             if act.get("edad"):
                 linea += f" | Edad: {act['edad']}"
@@ -117,7 +124,7 @@ def _respuesta_fallback(
         )
     for w in advertencias:
         lines.append(f"{w}\n")
-    for act in items[:5]:
+    for act in items[:15]:
         line = f"  - {act['descripcion']}"
         if act.get("sentimiento", {}).get("label") == "positivo":
             line += " (muy bien valorada)"

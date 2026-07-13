@@ -1,5 +1,6 @@
 import unicodedata
 import re
+from datetime import datetime
 
 import pandas as pd
 
@@ -21,6 +22,8 @@ ACTIVIDADES_KEYWORDS = {
     "museo", "feria", "mercado", "aventura", "remo", "remar", "remar", "remos", 
     "vuelo de bautismo", "vuelos de bautismo", "volar en parapente", "volar con parapente", 
     "vuelo con planeador","volar en planeador", "volar en planeadores", "planeadores","planeador",
+    "ninos", "nino","ninas", "nina", "nene", "nenes", "chicos", "chica", "chico", "chica", "abuelo",
+    "abuela", "abuelos", "adulto mayor", "adultos mayores", "jubilados", "jubiladas", "jubilado", "jubilada",
 
 }
 
@@ -37,6 +40,19 @@ NAUTICAS_KEYWORDS = {
     "canoa", "paseo", "maritimo", "buceo", "stand up paddle",
     "sup", "wind", "kite", "pescar", "surfear", "navegar", 
     "remar", "pasear", "bucear", "planeador",
+}
+
+OUTDOOR_KEYWORDS = {
+    "parapente", "vuelo", "volar", "planeador", "surf", "kayak", "buceo",
+    "trekking", "escalada", "cabalgata", "remo", "navegacion", "navegar",
+    "aventura", "rafting", "kitesurf", "windsurf", "excursion", "pesca",
+    "caminata", "bicicleta", "bici", "running", "karting", "cuatriciclo",
+}
+
+INDOOR_KEYWORDS = {
+    "museo", "casino", "bingo", "bowling", "acuario", "feria",
+    "mercado", "teatro", "cine", "religioso", "cultural",
+    "artesanal", "recreacion para ninos",
 }
 
 
@@ -65,6 +81,28 @@ def _match_zone(df: pd.DataFrame, zona: str) -> pd.DataFrame:
     z = _normalize(zona)
     mask = df["Zona"].fillna("").apply(lambda v: z in _normalize(v))
     return df[mask].copy()
+
+
+def _check_time_restriction(message: str) -> str | None:
+    hora = datetime.now().hour
+    if hora < 8 or hora >= 18:
+        msg = _normalize(message)
+        for kw in OUTDOOR_KEYWORDS:
+            if kw in msg:
+                ahora = datetime.now().strftime("%H:%M")
+                if hora >= 18:
+                    return (
+                        f"Son las {ahora} horas y ya no hay luz solar. "
+                        f"Actividades como '{kw}' al aire libre no son posibles a esta hora. "
+                        f"Te sugiero consultar por opciones techadas o nocturnas."
+                    )
+                else:
+                    return (
+                        f"Son las {ahora} horas (madrugada). "
+                        f"Las actividades al aire libre como '{kw}' requieren luz solar. "
+                        f"Te sugiero esperar a que salga el sol o consultar opciones techadas."
+                    )
+    return None
 
 
 def _apply_weather_warnings(result: dict, weather: WeatherData | None) -> list[str]:
@@ -96,12 +134,23 @@ def _build_advertencia(item: dict, weather: WeatherData | None) -> str | None:
 
 
 async def recommend(message: str) -> dict:
+    time_warning = _check_time_restriction(message)
+    if time_warning:
+        return {
+            "items": [],
+            "weather": None,
+            "advertencias": [time_warning],
+            "intent": {"tipo": "general", "keyword": ""},
+            "response": time_warning.replace("\n", " "),
+        }
+
     merged, recreacion, opiniones = load_merged_data()
     weather = await fetch_weather()
 
     intent = _detect_intent(message)
     result = {"intent": intent, "weather": weather, "_lluvia": False, "_viento_fuerte": False}
     warnings = _apply_weather_warnings(result, weather)
+
     result["advertencias"] = warnings
 
     if intent["tipo"] == "actividad":
