@@ -207,9 +207,15 @@ def _priorizar_por_relevancia(df: pd.DataFrame, intent: dict) -> pd.DataFrame:
     return df
 
 
-def _check_time_restriction(message: str) -> str | None:
+def _check_time_restriction(message: str, intent: dict) -> str | None:
     hora = datetime.now().hour
     if hora < 8 or hora >= 18:
+        if intent["tipo"] == "actividad" and intent.get("actividad"):
+            act = _normalize(intent["actividad"])
+            if act in INDOOR_KEYWORDS:
+                return None
+        if intent["tipo"] == "playa":
+            return None
         ahora = datetime.now().strftime("%H:%M")
         if hora >= 18:
             return (
@@ -256,21 +262,20 @@ def _build_advertencia(item: dict, weather: WeatherData | None) -> str | None:
 
 
 async def recommend(message: str) -> dict:
-    time_warning = _check_time_restriction(message)
+    merged, recreacion, opiniones = load_merged_data()
+    weather = await fetch_weather()
+
+    intent = _detect_intent(message)
+    time_warning = _check_time_restriction(message, intent)
     if time_warning:
         return {
             "items": [],
             "weather": None,
             "advertencias": [],
-            "intent": {"tipo": "general", "keyword": ""},
+            "intent": intent,
             "response": "",
             "time_warning": time_warning,
         }
-
-    merged, recreacion, opiniones = load_merged_data()
-    weather = await fetch_weather()
-
-    intent = _detect_intent(message)
     result = {"intent": intent, "weather": weather, "_lluvia": False, "_viento_fuerte": False}
     warnings = _apply_weather_warnings(result, weather)
 
