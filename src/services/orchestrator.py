@@ -262,98 +262,110 @@ def _build_advertencia(item: dict, weather: WeatherData | None) -> str | None:
 
 
 async def recommend(message: str) -> dict:
-    merged, recreacion, opiniones = load_merged_data()
-    weather = await fetch_weather()
+    try:
+        merged, recreacion, opiniones = load_merged_data()
+        weather = await fetch_weather()
 
-    intent = _detect_intent(message)
-    time_warning = _check_time_restriction(message, intent)
-    if time_warning:
+        intent = _detect_intent(message)
+        time_warning = _check_time_restriction(message, intent)
+        if time_warning:
+            return {
+                "items": [],
+                "weather": None,
+                "advertencias": [],
+                "intent": intent,
+                "response": "",
+                "time_warning": time_warning,
+            }
+        result = {"intent": intent, "weather": weather, "_lluvia": False, "_viento_fuerte": False}
+        warnings = _apply_weather_warnings(result, weather)
+
+        result["advertencias"] = warnings
+
+        filtered = merged.copy()
+
+        if intent["zona"]:
+            filtered = _match_zone(filtered, intent["zona"])
+
+        if intent["tipo"] == "playa":
+            search_terms = [
+                "playa", "costa", "costero", "costera", "mar", "maritimo", "maritima",
+                "olas", "arena", "surf", "kayak", "navegacion", "navegar", "paseo",
+                "excursion", "nautico", "nautica", "acuatico", "acuatica",
+                "stand up paddle", "sup", "buceo", "vela", "remo",
+            ]
+            filtered = _search_columns(filtered, search_terms)
+            filtered = _excluir_categorias_irrelevantes(filtered, intent)
+            filtered = _priorizar_por_relevancia(filtered, intent)
+
+        elif intent["tipo"] == "familia":
+            search_terms = [
+                "familia", "familias", "nino", "nina", "ninos", "ninas", "chicos",
+                "chicas", "abuelo", "abuela", "abuelos", "adulto mayor",
+                "adultos mayores", "jubilado", "jubilada", "tranquilo", "tranquila",
+                "paseo", "caminata", "guiado", "recreacion", "infantil",
+            ]
+            filtered = _search_columns(filtered, search_terms)
+            filtered = _excluir_categorias_irrelevantes(filtered, intent)
+
+        elif intent["tipo"] == "actividad":
+            kw = intent["actividad"]
+            search_terms = [kw]
+
+            if kw in ["vuelo", "vuelos", "volar", "parapente", "parapentes", "planeador", "planeadores", "aeroclub"]:
+                search_terms = ["vuelo", "vuelos", "volar", "parapente", "parapentes", "planeador", "planeadores", "aeroclub"]
+            elif kw in ["surf", "surfing", "surfear"]:
+                search_terms = ["surf", "surfing", "surfear"]
+
+            filtered = _search_columns(filtered, search_terms)
+
+        if filtered.empty:
+            result["items"] = []
+            return result
+
+        seen = set()
+        items = []
+        for _, row in filtered.iterrows():
+            key = row.get("cod_lugar", row.get("descripcion", ""))
+            if key in seen:
+                continue
+            seen.add(key)
+
+            zona_val = row.get("Zona", "")
+            if pd.isna(zona_val):
+                zona_val = ""
+            cat_val = row.get("Categoria", "")
+            if pd.isna(cat_val):
+                cat_val = ""
+
+            item = {
+                "descripcion": row["descripcion"],
+                "categoria": cat_val,
+                "zona": zona_val,
+                "intensidad": classify_intensidad(row["descripcion"], cat_val),
+                "edad": classify_edad(row["descripcion"], cat_val),
+            }
+
+            if pd.notna(row.get("estrellas")):
+                sent = analyze_sentiment(row["estrellas"], row.get("comentario", ""))
+                item["sentimiento"] = sent
+
+            warning = _build_advertencia(item, weather)
+            if warning:
+                item["advertencia"] = warning
+
+            items.append(item)
+
+        result["items"] = items
+        return result
+
+    except Exception as e:
         return {
             "items": [],
             "weather": None,
             "advertencias": [],
-            "intent": intent,
+            "intent": {"tipo": "general", "keyword": "", "actividad": None, "zona": None},
             "response": "",
-            "time_warning": time_warning,
+            "time_warning": None,
+            "error": str(e),
         }
-    result = {"intent": intent, "weather": weather, "_lluvia": False, "_viento_fuerte": False}
-    warnings = _apply_weather_warnings(result, weather)
-
-    result["advertencias"] = warnings
-
-    filtered = merged.copy()
-
-    if intent["zona"]:
-        filtered = _match_zone(filtered, intent["zona"])
-
-    if intent["tipo"] == "playa":
-        search_terms = [
-            "playa", "costa", "costero", "costera", "mar", "maritimo", "maritima",
-            "olas", "arena", "surf", "kayak", "navegacion", "navegar", "paseo",
-            "excursion", "nautico", "nautica", "acuatico", "acuatica",
-            "stand up paddle", "sup", "buceo", "vela", "remo",
-        ]
-        filtered = _search_columns(filtered, search_terms)
-        filtered = _excluir_categorias_irrelevantes(filtered, intent)
-        filtered = _priorizar_por_relevancia(filtered, intent)
-
-    elif intent["tipo"] == "familia":
-        search_terms = [
-            "familia", "familias", "nino", "nina", "ninos", "ninas", "chicos",
-            "chicas", "abuelo", "abuela", "abuelos", "adulto mayor",
-            "adultos mayores", "jubilado", "jubilada", "tranquilo", "tranquila",
-            "paseo", "caminata", "guiado", "recreacion", "infantil",
-        ]
-        filtered = _search_columns(filtered, search_terms)
-        filtered = _excluir_categorias_irrelevantes(filtered, intent)
-
-    elif intent["tipo"] == "actividad":
-        kw = intent["actividad"]
-        search_terms = [kw]
-
-        if kw in ["vuelo", "vuelos", "volar", "parapente", "parapentes", "planeador", "planeadores", "aeroclub"]:
-            search_terms = ["vuelo", "vuelos", "volar", "parapente", "parapentes", "planeador", "planeadores", "aeroclub"]
-        elif kw in ["surf", "surfing", "surfear"]:
-            search_terms = ["surf", "surfing", "surfear"]
-
-        filtered = _search_columns(filtered, search_terms)
-
-    if filtered.empty:
-        result["items"] = []
-        return result
-
-    seen = set()
-    items = []
-    for _, row in filtered.iterrows():
-        key = row.get("cod_lugar", row.get("descripcion", ""))
-        if key in seen:
-            continue
-        seen.add(key)
-
-        zona_val = row.get("Zona", "")
-        if pd.isna(zona_val):
-            zona_val = ""
-        cat_val = row.get("Categoria", "")
-        if pd.isna(cat_val):
-            cat_val = ""
-
-        item = {
-            "descripcion": row["descripcion"],
-            "categoria": cat_val,
-            "zona": zona_val,
-            "intensidad": classify_intensidad(row["descripcion"], cat_val),
-            "edad": classify_edad(row["descripcion"], cat_val),
-        }
-
-        if pd.notna(row.get("estrellas")):
-            sent = analyze_sentiment(row["estrellas"], row.get("comentario", ""))
-            item["sentimiento"] = sent
-
-        warning = _build_advertencia(item, weather)
-        if warning:
-            item["advertencia"] = warning
-
-        items.append(item)
-
-    result["items"] = items
-    return result

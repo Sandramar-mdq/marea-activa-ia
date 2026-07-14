@@ -54,24 +54,33 @@ def _to_activity_items(items: list[dict]) -> list[ActivityItem]:
 
 @router.post("/api/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
-    data = await recommend(req.message)
-    items = data.get("items", [])
-    weather = data.get("weather")
-    advertencias = data.get("advertencias", [])
-    time_warning = data.get("time_warning")
-    texto = data.get("response") or await generar_respuesta(
-        mensaje=req.message,
-        items=items,
-        weather=_weather_dict(weather) if weather else None,
-        advertencias=advertencias,
-        time_warning=time_warning,
-    )
-    return ChatResponse(
-        response=texto,
-        items=_to_activity_items(items),
-        weather=_to_weather_info(weather),
-        advertencias=advertencias,
-    )
+    try:
+        data = await recommend(req.message)
+        items = data.get("items", [])
+        weather = data.get("weather")
+        advertencias = data.get("advertencias", [])
+        time_warning = data.get("time_warning")
+        texto = data.get("response") or await generar_respuesta(
+            mensaje=req.message,
+            items=items,
+            weather=_weather_dict(weather) if weather else None,
+            advertencias=advertencias,
+            time_warning=time_warning,
+        )
+        return ChatResponse(
+            response=texto,
+            items=_to_activity_items(items),
+            weather=_to_weather_info(weather),
+            advertencias=advertencias,
+        )
+    except Exception as e:
+        return ChatResponse(
+            response="Disculpa, tuve un problema al procesar tu consulta. "
+                    "Probá de nuevo o preguntame por otra actividad o zona de Mar del Plata.",
+            items=[],
+            weather=None,
+            advertencias=[],
+        )
 
 
 def _weather_dict(w) -> dict:
