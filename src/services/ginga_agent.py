@@ -17,10 +17,10 @@ SISTEMA = (
     "politica, etc.), debes explicarle con calidez que tu especialidad son las actividades deportivas y recreativas, "
     "e invitarlo a consultar sobre eso, IGNORANDO los items de pesca o surf que el sistema te haya enviado por error "
     "si no tienen relacion con lo que el pide. "
-    "REGLA HORARIA: Si el usuario pide actividades al aire libre (deportes de aventura, parapente, surf, trekking, etc.) "
-    "y la hora actual es nocturna (despues de las 18:00 o antes de las 08:00), debes advertirle que no es posible "
-    "por falta de luz solar y sugerirle actividades techadas o alternativas nocturnas. "
-    "Respondes SIEMPRE en espanol argentino, con caliges y energia."
+    "REGLA HORARIA: Si el sistema te indica que es de noche o madrugada, DEBES incluir esa advertencia "
+    "dentro de tu respuesta principal, justo antes de listar las actividades. "
+    "Nunca generes un mensaje separado para la advertencia horaria; integrala en el mismo texto. "
+    "Respondes SIEMPRE en espanol argentino, con calidez y energia."
 )
 
 
@@ -29,11 +29,21 @@ def _armar_prompt(
     items: list[dict],
     weather: dict | None,
     advertencias: list[str],
+    time_warning: str | None = None,
 ) -> str:
     from datetime import datetime
     ahora = datetime.now().strftime("%H:%M")
     partes = [f"El usuario dice: '{mensaje}'.\n"]
     partes.append(f"Hora actual: {ahora}.\n")
+
+    if time_warning:
+        partes.append(
+            f"ADVERTENCIA HORARIA: {time_warning}\n"
+            "INSTRUCCION: Debes incluir esta advertencia de forma natural en tu respuesta, "
+            "justo antes de listar las actividades. Ejemplo: 'Hola, son las [hora]. "
+            "Ten en cuenta que a esta hora muchas actividades al aire libre no estan disponibles. "
+            "Aqui tienes algunas opciones para considerar:'.\n"
+        )
     if weather:
         partes.append(
             f"Clima actual en MDP: {weather['temperature']}C, "
@@ -44,7 +54,7 @@ def _armar_prompt(
             partes.append(f"Advertencia: {w}\n")
     if items:
         partes.append("Actividades recomendadas:\n")
-        for i, act in enumerate(items[:15], 1):
+        for i, act in enumerate(items[:10], 1):
             linea = f"  {i}. {act['descripcion']} | {act['categoria']} | Zona: {act['zona']} | Intensidad: {act['intensidad']}"
             if act.get("edad"):
                 linea += f" | Edad: {act['edad']}"
@@ -55,13 +65,16 @@ def _armar_prompt(
             partes.append(linea)
     else:
         partes.append("No se encontraron actividades para esa busqueda.\n")
-    
+
     partes.append(
         "\nInstruccion final para Ginga: Evalua con atencion el mensaje del usuario. "
         "Si notas que te pide algo ajeno a las actividades deportivas o paseos (como comida), "
         "aplica la REGLA DE ORO de tu sistema. Si el mensaje es pertinente, respondele con "
-        "entusiasmo recomendandole la lista de actividades adjunta. Si la lista esta vacia, "
-        "sugerile que pregunte por otro deporte o zona de la ciudad."
+        "entusiasmo recomendandole la lista de actividades adjunta. "
+        "Presenta las opciones encontradas (pueden ser 2, 3 o mas). "
+        "Si la lista es corta, no rellenes con opciones inventadas. "
+        "Cierra con una despedida amable, sin invitar a seguir buscando en la misma categoria. "
+        "Si la lista esta vacia, sugerile que pregunte por otro deporte o zona de la ciudad."
     )
     return "\n".join(partes)
 
@@ -71,11 +84,12 @@ async def generar_respuesta(
     items: list[dict],
     weather: dict | None = None,
     advertencias: list[str] | None = None,
+    time_warning: str | None = None,
 ) -> str:
     if not GEMINI_API_KEY:
-        return _respuesta_fallback(mensaje, items, weather, advertencias or [])
+        return _respuesta_fallback(mensaje, items, weather, advertencias or [], time_warning)
 
-    prompt = _armar_prompt(mensaje, items, weather, advertencias or [])
+    prompt = _armar_prompt(mensaje, items, weather, advertencias or [], time_warning)
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             f"{GEMINI_URL}?key={GEMINI_API_KEY}",
@@ -86,13 +100,13 @@ async def generar_respuesta(
             timeout=30,
         )
     if resp.status_code != 200:
-        return _respuesta_fallback(mensaje, items, weather, advertencias or [])
+        return _respuesta_fallback(mensaje, items, weather, advertencias or [], time_warning)
     data = resp.json()
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]
         return text.replace("\\n", "\n")
     except (KeyError, IndexError):
-        return _respuesta_fallback(mensaje, items, weather, advertencias or [])
+        return _respuesta_fallback(mensaje, items, weather, advertencias or [], time_warning)
 
 
 def _respuesta_fallback(
@@ -100,13 +114,19 @@ def _respuesta_fallback(
     items: list[dict],
     weather: dict | None,
     advertencias: list[str],
+    time_warning: str | None = None,
 ) -> str:
-    # Si el usuario pide comida y cae el fallback, no le mostramos botes de pesca
     if "milan" in mensaje.lower() or "comer" in mensaje.lower():
         return (
             "¡Hola! Se me complico la conexion, pero te cuento que por ahora solo te puedo "
             "ayudar a buscar actividades recreativas y deportes en la feliz. ¿Te gustaria "
             "consultar por surf, kayak o paseos?"
+        )
+    if time_warning and not items:
+        return (
+            f"{time_warning}\n"
+            "Te sugiero consultar por opciones techadas o nocturnas como "
+            "bowling, casinos, museos o boliche."
         )
     if not items:
         return (
@@ -114,9 +134,11 @@ def _respuesta_fallback(
             "Proba preguntando por un deporte (surf, pesca, trekking...) "
             "o por una zona (Playa Grande, Puerto...)"
         )
-    lines = [
-        "Estas son mis recomendaciones:\n"
-    ]
+    lines = []
+    if time_warning:
+        lines.append(f"{time_warning}\n")
+    else:
+        lines.append("Estas son mis recomendaciones:\n")
     if weather:
         lines.append(
             f"El clima en Mar del Plata: {weather['description']}, "
@@ -124,12 +146,12 @@ def _respuesta_fallback(
         )
     for w in advertencias:
         lines.append(f"{w}\n")
-    for act in items[:15]:
+    for act in items[:10]:
         line = f"  - {act['descripcion']}"
         if act.get("sentimiento", {}).get("label") == "positivo":
             line += " (muy bien valorada)"
         lines.append(line)
     lines.append(
-        "\nEspero que te sirvan. Decime si queres conocer mas opciones!"
+        "\nEspero que te sirvan. ¡Saludos!"
     )
     return "\n".join(lines)

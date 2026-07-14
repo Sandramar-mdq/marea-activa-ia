@@ -4,7 +4,7 @@ cod_lugar;descripcion;observacion;Categoria;fecha_modif,;Calle/Ruta,;e-mail,;Coo
 56941;Aquafish;;Pesca Recreativa ;15/01/2025;Reserva Telefónica;info@aquafish.com.ar; -38.041005, -57.541871 -;;2234-001335;Puerto;;;;;;;;;;;;;;;;;;;;;;
 56942;Mako Team;;Pesca Recreativa ;03/06/2021;Reserva Telefónica;info@makoteam.com;-38.000581, -57.539991;;2234003575;Playas del Centro;;;;;;;;;;;;;;;;;;;;;;
 57715;Información sobre La Pesca Recreativa en Mar del Plata;;Pesca Recreativa ;16/02/2021;;;-38.001542, -57.538112;;;;;;;;;;;;;;;;;;;;;;;;;
-27101;SURF. Mar del Plata Surf School - Maximiliano Prenski;"Escuela de surf en la playa, clases iniciales aptas para chicos, niños y familias;Deportes de Aventura";Deportes de Aventura ;14/01/2025;Paseo Victoria Ocampo;maxirulos@hotmail.com;-38.026533, -57.531333;8;2234-554829 (WhatsApp);Playa Grande;;;;;;;;;;;;;;;;;;;;;;
+27101;SURF. Mar del Plata Surf School - Maximiliano Prenski;Escuela de surf en la playa, clases iniciales aptas para chicos, niños y familias;Deportes de Aventura ;14/01/2025;Paseo Victoria Ocampo;maxirulos@hotmail.com;-38.026533, -57.531333;8;2234-554829 (WhatsApp);Playa Grande;;;;;;;;;;;;;;;;;;;;;;
 56247;Mds - Más Deporte Salud;;Deportes de Aventura ;14/01/2025;Reserva Telefónica;masdeportesalud@hotmail.com;-37.991536, -57.545446;;2235-307264;;;;;;;;;;;;;;Caminatas y Actividades Físicas;;Circuitos Guiados;;;;;;;Caminatas y Actividades Físicas , Circuitos Guiados
 56834;BUCEO. AMBA. Agrupación Marplatense de Buzos Autónomos;;Deportes de Aventura ;03/06/2021;Padre Dutto;ambamdp@gmail.com;-38.039339, -57.550677;383;2236006615;Puerto, Barrio;;;;;;;;;;;;;;;;;;;;;;
 56945;PARAPENTE. Parapente Mar del Plata;;Deportes de Aventura ;14/01/2025;Reserva Telefónica;condorfernando@hotmail.com;-38.118103, -57.592952;;2235911179 (WhatsApp);;;;;;;;;;;;;;;;;;;;;;;
@@ -20,7 +20,7 @@ cod_lugar;descripcion;observacion;Categoria;fecha_modif,;Calle/Ruta,;e-mail,;Coo
 59179;Parapente Viento Sur;;Deportes de Aventura ;14/01/2025;;;;;2234-363916 (WhatsApp);;;;;;;;;;;;;;;;;;;;;;;
 59180;Escuela Sol SUP mdq - Centro Naval;Clases de sup en la playa, actividad náutica ideal para niños, principiantes y familias;Deportes de Aventura ;14/01/2025;Vito Dumas;;;50;2235-910136;;;;;;;;;;;;;;;;;;;;;;;
 59181;Paseos Náuticos - Torreon del Monje;;Deportes de Aventura ;14/01/2025;;;;;2234-554829;;;;;;;;;;;;;;;;;;;;;;;
-59217;Movete Surf;Clases en la playa, escuela de surf y sup, actividad náutica ideal para niños, chicos, principiantes y actividades familiares;Deportes de Aventura ;14/01/2025;;;;;2234-556868;;;;;;;;;;;;;;;;;;;;;;;
+5151;Movete Surf;Clases en la playa, escuela de surf y sup, actividad náutica ideal para niños, chicos, principiantes y actividades familiares;Deportes de Aventura ;14/01/2025;;;;;2234-556868;;;;;;;;;;;;;;;;;;;;;;;
 13083;Bingo del Sol;;Casinos y Bingos ;14/01/2025;Av. Independencia;;-37.996872, -57.553195;1752;(0223) 494-9333;Centro;;;;;;;;;;;;;;;;;;;;;;
 13084;Bingo Mar;;Casinos y Bingos ;14/01/2025;Entre Ríos;;-38.004502, -57.545465;2091;(0223) 494-9333;Microcentro;;;;;;;;;;;;;;;;;;;;;;
 13086;Casino Central;;Casinos y Bingos ;14/01/2025;Bv. Marítimo Patricio Peralta Ramos;casinocentral2012@outlook.com;-38.004172, -57.542444;2148;(0223) 495-7011 Int. 373;Playas del Centro;;;;;;;;;;;;;;;;;;;;;;
@@ -28,8 +28,8 @@ cod_lugar;descripcion;observacion;Categoria;fecha_modif,;Calle/Ruta,;e-mail,;Coo
 22045;Bingo Puerto;;Casinos y Bingos ;14/01/2025;Av. Edison;;-38.042054, -57.548967;477;(0223) 494-9333.;Puerto;;;;;;;;;;;;;;;;;;;;;;
 56311;Casino Hotel UTHGRA Sasso;;Casinos y Bingos ;14/01/2025;Av. de los Trabajadores;;-38.075695, -57.545288;3545;(0223) 499-9096;Punta Mogotes, Playa;;;;;;;;;;;;;;;;;;;;;;
 58344;Casino del Mar;;Casinos y Bingos ;14/01/2025;Bv. Marítimo Patricio Peralta Ramos;info@casinodelmar.com.ar;-38.007549, -57.539458;2565;(2003) 486-1976 / (0223) 486-1951;Playas del Centro;;;;;;;;;;;;;;;;;;;;;;
-21898;Play Land Park;"Ideal para ir con niños, juegos infantiles y paseos familiares recreativos;Recreación para niños";Recreación para niños;15/01/2025;Rivadavia;playlandmdq@hotmail.com;-37.998057, -57.552004;3050;(0223) 492-0644;Centro;;;;;;;;;;;;;;;;;;;;;;
-56291;Sacoa Entretenimientos. Centro;"Juegos electrónicos e infantiles para chicos y toda la familia;Recreación para niños";Recreación para niños;15/01/2025;San Martín;saenc@sacoa.com;-38.000826, -57.544207;2332;(0223) 494-9821;Microcentro;;;;;;;;;;;;;;;;;;;;;;
+21898;Play Land Park;Ideal para ir con niños, juegos infantiles y paseos familiares recreativo;Recreación para niños;15/01/2025;Rivadavia;playlandmdq@hotmail.com;-37.998057, -57.552004;3050;(0223) 492-0644;Centro;;;;;;;;;;;;;;;;;;;;;;
+56291;Sacoa Entretenimientos. Centro;Juegos electrónicos e infantiles para chicos y toda la familia;Recreación para niños;15/01/2025;San Martín;saenc@sacoa.com;-38.000826, -57.544207;2332;(0223) 494-9821;Microcentro;;;;;;;;;;;;;;;;;;;;;;
 56717;Bajo Cero;;Recreación para niños;15/01/2025;San Martín;;-38.001279, -57.543229;2245;(0223) 491-3625;Microcentro;;;;;;;;;;;;;;;;;;;;;;
 13023;Feria Central - Diagonal de los Artesanos;;Ferias y Mercados ;14/01/2025;Diag. Pueyrredon;feriascultura@yahoo.com;-37.998381, -57.549820;2900;2233-557014;Centro;;;;;;;;;;;;;;;;;;;;;;
 13024;Mercado de Pulgas - Feria de Antigüedades;;Ferias y Mercados ;14/01/2025;20 de Septiembre;feriascultura@yahoo.com;-37.993758, -57.556812;1600;2233-557014;Plaza Rocha;;;;;;;;;;;;;;;;;;;;;;

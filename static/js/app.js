@@ -37,48 +37,6 @@ function showAdvertencia(text) {
   scrollToBottom();
 }
 
-function renderItems(items) {
-  if (!items || items.length === 0) return;
-
-  const wrapper = document.createElement("div");
-  wrapper.className = "items-container";
-
-  items.forEach((item) => {
-    const card = document.createElement("div");
-    card.className = "item-card";
-
-    let sentHTML = "";
-    if (item.sentimiento) {
-      const emoji = item.sentimiento.label === "positivo" ? "👍" : item.sentimiento.label === "negativo" ? "👎" : "➖";
-      sentHTML = `<span class="item-sentiment ${item.sentimiento.label}">${emoji} ${item.sentimiento.label}</span>`;
-    }
-
-    let warnHTML = "";
-    if (item.advertencia) {
-      warnHTML = `<div class="item-warning">⚠ ${item.advertencia}</div>`;
-    }
-
-    card.innerHTML = `
-      <div class="item-header">
-        <span class="item-categoria">${item.categoria || "Sin categoría"}</span>
-        <span class="item-intensidad">${item.intensidad}</span>
-      </div>
-      <p class="item-descripcion">${item.descripcion}</p>
-      <div class="item-meta">
-        <span class="item-zona">📍 ${item.zona || "Sin zona"}</span>
-        <span class="item-edad">👤 ${item.edad}</span>
-        ${sentHTML}
-      </div>
-      ${warnHTML}
-    `;
-
-    wrapper.appendChild(card);
-  });
-
-  chatHistory.appendChild(wrapper);
-  scrollToBottom();
-}
-
 async function sendMessage(text) {
   addMessage(text, "user");
   messageInput.value = "";
@@ -103,10 +61,6 @@ async function sendMessage(text) {
 
     if (data.response) {
       addMessage(data.response, "bot");
-    }
-
-    if (data.items && data.items.length > 0) {
-      renderItems(data.items);
     }
 
     if (data.advertencias && data.advertencias.length > 0) {

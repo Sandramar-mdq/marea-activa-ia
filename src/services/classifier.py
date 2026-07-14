@@ -21,7 +21,8 @@ INTENSIDAD_BAJA = {
 CATEGORIA_ALTA = {"deportes de aventura", "pesca recreativa"}
 CATEGORIA_MEDIA = {
     "alquiler de bicicletas y motos", "caminatas y actividades fisicas",
-    "excursiones maritimas", "paseos aereos", "cabalgatas",
+    "excursiones maritimas", "paseos aereos", "cabalgatas", "caminatas", 
+    "senderismo",
 }
 CATEGORIA_BAJA = {
     "casinos y bingos", "recreacion para ninos", "ferias y mercados",
@@ -33,11 +34,12 @@ CATEGORIA_BAJA = {
 
 EDAD_INFANTIL = {
     "recreacion para ninos", "infantil", "ninos", "kids",
-    "play land", "saltos", "trampoline",
+    "play land", "saltos", "trampoline", "chicos", "nenes", 
 }
 EDAD_ADULTOS = {
     "casino", "bingo", "vuelo", "buceo", "parapente",
-    "cerveceria", "destileria",
+    "cerveceria", "destileria", "planeador", "volar", 
+    "bucear",
 }
 
 

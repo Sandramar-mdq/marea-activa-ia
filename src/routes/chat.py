@@ -58,11 +58,13 @@ async def chat(req: ChatRequest):
     items = data.get("items", [])
     weather = data.get("weather")
     advertencias = data.get("advertencias", [])
+    time_warning = data.get("time_warning")
     texto = data.get("response") or await generar_respuesta(
         mensaje=req.message,
         items=items,
         weather=_weather_dict(weather) if weather else None,
         advertencias=advertencias,
+        time_warning=time_warning,
     )
     return ChatResponse(
         response=texto,
