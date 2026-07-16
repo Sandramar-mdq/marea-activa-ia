@@ -66,6 +66,7 @@ async def chat(req: ChatRequest):
             weather=_weather_dict(weather) if weather else None,
             advertencias=advertencias,
             time_warning=time_warning,
+            intent=data.get("intent"),
         )
         return ChatResponse(
             response=texto,

@@ -68,6 +68,7 @@ FAMILIA_KEYWORDS = {
     "jubilado", "jubilada", "jubilados", "jubiladas", "nino", "nina", "ninos",
     "ninas", "nene", "nenes", "chico", "chica", "chicos", "chicas", "familia",
     "familias", "trankilo", "tranquilo", "tranquila", "relajado", "relajada",
+    "apto para toda la familia", "toda la familia", "niños",
 }
 
 CATEGORIAS_PLAYA_PERMITIDAS = {
@@ -85,6 +86,21 @@ CATEGORIAS_EXCLUIR_FAMILIA = {
     "turismo religioso",
 }
 
+FUERA_DE_DOMINIO_KEYWORDS = {
+    "museo", "museos", "cerveceria", "cervecerias", "cervecería", "bodega", "bodegas",
+    "destileria", "destilerías", "feria", "ferias", "mercado", "mercados",
+    "casino", "casinos", "bingo", "bingos", "iglesia", "iglesias", "capilla", "capillas",
+    "parroquia", "parroquias", "turismo religioso", "gastronomia", "gastronomía",
+    "comida", "restaurante", "restaurantes", "milanesa", "milanesas",
+    "helado", "helados", "artesanal", "artesanales", "teatro", "teatros",
+    "cine", "cines", "alojamiento", "hotel", "hoteles", "departamento",
+    "hostel", "propiedad", "inmobiliaria",
+}
+
+MENSAJE_FUERA_DE_DOMINIO = (
+    "Solo estoy capacitado para recomendarte actividades deportivas y recreativas al aire libre."
+)
+
 
 def _es_categoria_playa_valida(cat_norm: str) -> bool:
     """Inclusivo: solo permite categorías que matcheen las permitidas."""
@@ -94,6 +110,80 @@ def _es_categoria_playa_valida(cat_norm: str) -> bool:
         if excl in cat_norm:
             return False
     return False
+
+
+TEMPORAL_KEYWORDS = {
+    "mañana", "manana", "pasado mañana", "pasado manana",
+    "fin de semana", "sabado", "domingo", "proximo", "proxima",
+}
+
+
+def _limpiar_temporal(message: str) -> str:
+    msg = _normalize(message)
+    for kw in sorted(TEMPORAL_KEYWORDS, key=len, reverse=True):
+        msg = msg.replace(_normalize(kw), "")
+    msg = re.sub(r'\b(el|la|los|las|de|del|en|para|por|con|sin|sobre|hasta|desde|durante|mediante)\b', '', msg)
+    return " ".join(msg.split()).strip()
+
+
+def _es_fuera_de_dominio(message: str) -> bool:
+    msg = _normalize(message)
+    return any(_kw_in_text(kw, msg) for kw in FUERA_DE_DOMINIO_KEYWORDS)
+
+
+def _filtrar_por_tipo_actividad(df: pd.DataFrame) -> pd.DataFrame:
+    col = "tipo_actividad "
+    if col not in df.columns:
+        col = "tipo_actividad"
+    if col not in df.columns:
+        return df
+    mask = df[col].fillna("").str.strip().str.lower().isin(["deportiva", "recreacion activa"])
+    return df[mask].copy()
+
+
+def get_deportes_por_zona() -> str:
+    merged, _, _ = load_merged_data()
+    filtered = _filtrar_por_tipo_actividad(merged)
+
+    grouped = filtered.groupby('Zona')['Categoria'].value_counts()
+
+    lines = []
+    for zona in grouped.index.get_level_values(0).unique():
+        if not zona or pd.isna(zona):
+            continue
+        cats = grouped[zona]
+        items = []
+        for cat, count in cats.items():
+            if pd.isna(count) or count == 0:
+                continue
+            items.append(f"{int(count)} {cat.strip().lower()}")
+        if items:
+            lines.append(f"En {zona} tenés: {', '.join(items)}.")
+
+    return "\n".join(lines) if lines else "No se encontraron actividades deportivas por zona."
+
+
+def get_mejor_valoradas() -> str:
+    opiniones = load_all_dataframes()[1]
+    opiniones["estrellas"] = pd.to_numeric(opiniones["estrellas"], errors="coerce")
+    opiniones = opiniones.dropna(subset=["estrellas"])
+
+    promedios = opiniones.groupby("descripcion")["estrellas"].mean().sort_values(ascending=False)
+    top3 = promedios.head(3)
+
+    if top3.empty:
+        return "No hay opiniones de usuarios registradas aún."
+
+    lines = []
+    for desc, promedio in top3.items():
+        lines.append(f"- {desc.strip()} (promedio: {promedio:.1f} estrellas)")
+
+    return (
+        "Estas son las actividades mejor valoradas por los usuarios:\n"
+        + "\n".join(lines)
+        + "\n\nLa recomendación se basa en el promedio de calificaciones de los usuarios."
+    )
+
 
 PLAYA_ZONAS_COSTERAS = {
     "playa grande", "playas del centro", "playas alfar",
@@ -121,7 +211,23 @@ def _detect_intent(message: str) -> dict:
         "keyword": "",
         "actividad": None,
         "zona": None,
+        "temporalidad": None,
+        "temporal_term": None,
     }
+
+    if any(_kw_in_text(kw, msg) for kw in ["listar", "listado", "lista", "mostrar", "mostra", "ver"]):
+        if any(_kw_in_text(kw, msg) for kw in ["zona", "zonas", "deportes por zona"]):
+            result["tipo"] = "listar_zonas"
+            return result
+
+    if any(_kw_in_text(kw, msg) for kw in ["mejor valorada", "mejor valoradas", "mas valorada", "mas valoradas", "mejores", "top", "mas estrellas", "mejor calificada", "mejor calificadas"]):
+        result["tipo"] = "mejor_valoradas"
+        return result
+
+    if any(_kw_in_text(kw, msg) for kw in ["opinion", "opiniones", "valoracion", "valoraciones"]):
+        if any(_kw_in_text(kw, msg) for kw in ["actividad", "actividades", "deporte", "deportes"]):
+            result["tipo"] = "mejor_valoradas"
+            return result
 
     for kw in ZONAS_KEYWORDS:
         if _kw_in_text(kw, msg):
@@ -148,13 +254,33 @@ def _detect_intent(message: str) -> dict:
         result["tipo"] = "intensidad"
         result["keyword"] = "Alta"
 
+    for kw in TEMPORAL_KEYWORDS:
+        if _kw_in_text(kw, msg):
+            result["temporalidad"] = "futuro"
+            result["temporal_term"] = kw
+            break
+
     return result
 
 
 def _match_zone(df: pd.DataFrame, zona: str) -> pd.DataFrame:
     z = _normalize(zona)
-    mask = df["Zona"].fillna("").apply(lambda v: z in _normalize(v))
-    return df[mask].copy()
+    df = df.copy()
+    df["_match_zona"] = df["Zona"].fillna("").apply(lambda v: z in _normalize(v))
+    result = df.query("_match_zona == True").drop(columns=["_match_zona"])
+    return result
+
+
+def _filtrar_compuesto(df: pd.DataFrame, activity_terms: list[str], zona: str | None) -> pd.DataFrame:
+    filtered = df.copy()
+    if zona:
+        z = _normalize(zona)
+        filtered["_match_zona"] = filtered["Zona"].fillna("").apply(lambda v: z in _normalize(v))
+        filtered = filtered.query("_match_zona == True")
+        filtered = filtered.drop(columns=["_match_zona"])
+    if activity_terms:
+        filtered = _search_columns(filtered, activity_terms)
+    return filtered
 
 
 def _search_columns(df: pd.DataFrame, terms: list[str]) -> pd.DataFrame:
@@ -214,8 +340,6 @@ def _check_time_restriction(message: str, intent: dict) -> str | None:
             act = _normalize(intent["actividad"])
             if act in INDOOR_KEYWORDS:
                 return None
-        if intent["tipo"] == "playa":
-            return None
         ahora = datetime.now().strftime("%H:%M")
         if hora >= 18:
             return (
@@ -267,25 +391,61 @@ async def recommend(message: str) -> dict:
         weather = await fetch_weather()
 
         intent = _detect_intent(message)
-        time_warning = _check_time_restriction(message, intent)
-        if time_warning:
+
+        if _es_fuera_de_dominio(message):
             return {
                 "items": [],
-                "weather": None,
+                "weather": weather,
                 "advertencias": [],
                 "intent": intent,
-                "response": "",
-                "time_warning": time_warning,
+                "response": MENSAJE_FUERA_DE_DOMINIO,
+                "time_warning": None,
             }
+
+        if intent["tipo"] == "listar_zonas":
+            texto = get_deportes_por_zona()
+            return {
+                "items": [],
+                "weather": weather,
+                "advertencias": [],
+                "intent": intent,
+                "response": texto,
+                "time_warning": None,
+            }
+
+        if intent["tipo"] == "mejor_valoradas":
+            texto = get_mejor_valoradas()
+            return {
+                "items": [],
+                "weather": weather,
+                "advertencias": [],
+                "intent": intent,
+                "response": texto,
+                "time_warning": None,
+            }
+
+        filtered = _filtrar_por_tipo_actividad(merged)
+
+        es_futuro = intent.get("temporalidad") == "futuro"
+
+        if not es_futuro:
+            time_warning = _check_time_restriction(message, intent)
+            if time_warning:
+                return {
+                    "items": [],
+                    "weather": None,
+                    "advertencias": [],
+                    "intent": intent,
+                    "response": "",
+                    "time_warning": time_warning,
+                }
+
+        search_message = _limpiar_temporal(message) if es_futuro else message
+
         result = {"intent": intent, "weather": weather, "_lluvia": False, "_viento_fuerte": False}
         warnings = _apply_weather_warnings(result, weather)
 
         result["advertencias"] = warnings
-
-        filtered = merged.copy()
-
-        if intent["zona"]:
-            filtered = _match_zone(filtered, intent["zona"])
 
         if intent["tipo"] == "playa":
             search_terms = [
@@ -294,7 +454,7 @@ async def recommend(message: str) -> dict:
                 "excursion", "nautico", "nautica", "acuatico", "acuatica",
                 "stand up paddle", "sup", "buceo", "vela", "remo",
             ]
-            filtered = _search_columns(filtered, search_terms)
+            filtered = _filtrar_compuesto(filtered, search_terms, intent["zona"])
             filtered = _excluir_categorias_irrelevantes(filtered, intent)
             filtered = _priorizar_por_relevancia(filtered, intent)
 
@@ -304,8 +464,9 @@ async def recommend(message: str) -> dict:
                 "chicas", "abuelo", "abuela", "abuelos", "adulto mayor",
                 "adultos mayores", "jubilado", "jubilada", "tranquilo", "tranquila",
                 "paseo", "caminata", "guiado", "recreacion", "infantil",
+                "apto para toda la familia", "toda la familia", "niños",
             ]
-            filtered = _search_columns(filtered, search_terms)
+            filtered = _filtrar_compuesto(filtered, search_terms, intent["zona"])
             filtered = _excluir_categorias_irrelevantes(filtered, intent)
 
         elif intent["tipo"] == "actividad":
@@ -317,10 +478,11 @@ async def recommend(message: str) -> dict:
             elif kw in ["surf", "surfing", "surfear"]:
                 search_terms = ["surf", "surfing", "surfear"]
 
-            filtered = _search_columns(filtered, search_terms)
+            filtered = _filtrar_compuesto(filtered, search_terms, intent["zona"])
 
         if filtered.empty:
             result["items"] = []
+            result["response"] = "No encontré actividades para tu búsqueda."
             return result
 
         seen = set()

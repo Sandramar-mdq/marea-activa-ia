@@ -95,9 +95,10 @@ function showWelcome() {
 
   const quickActions = document.getElementById("quick-actions");
   const acciones = [
-    { label: "Paseos Familiares", text: "¿Qué actividades tranquilas o paseos familiares recomendás?" },
+    { label: "Actividades Familiares", text: "¿Qué actividades familiares o aptas para toda la familia recomendás?" },
     { label: "Actividades en la playa", text: "¿Qué deportes o actividades náuticas hay en la playa?" },
-    { label: "Actividades más solicitadas", text: "¿Cuáles son las excursiones o tours más solicitados?" },
+    { label: "Actividades mejor valoradas", text: "¿Cuáles son las actividades mejor valoradas por los usuarios?" },
+    { label: "Listar deportes por zona", text: "Listá los deportes y actividades por zona" },
   ];
 
   acciones.forEach((a) => {
