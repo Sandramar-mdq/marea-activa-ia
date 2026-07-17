@@ -140,7 +140,7 @@ Cuando el usuario consulta por una fecha futura ("mañana", "el fin de semana"),
 
 Integración con opiniones de Google para presentar las actividades mejor calificadas, promediando las estrellas de los usuarios y ordenando por relevancia.
 
-![Valoraciones]()
+![Valoraciones](docs/img/valoraciones2.png)
 
 ### Restriccion Geografica
 
