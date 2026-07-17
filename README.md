@@ -142,6 +142,12 @@ Integración con opiniones de Google para presentar las actividades mejor califi
 
 ![Valoraciones](docs/img/valoraciones.png)
 
+### Restriccion Geografica
+
+El sistema detecta cuando el usuario menciona una ciudad, playa o localidad que **no** es Mar del Plata (Necochea, Miramar, Villa Gesell, Tandil, etc.) y responde amablemente que por el momento solo esta preparado para recomendar actividades en la Feliz. La deteccion excluye falsos positivos: si el usuario dice "soy de Buenos Aires, que hay en Mar del Plata?", el sistema acepta porque detecta la mencion a MDP.
+
+![Limite geografico - rechazo de otra ciudad](docs/img/limite_geografico.png)
+
 ---
 
 ## Arquitectura Basada en Agentes
@@ -179,3 +185,9 @@ Proyecto desarrollado como **Trabajo Práctico Integrador** para las asignaturas
 Marea Activa fue diseñado bajo el principio de **costo cero y procesamiento local**. Todo el filtrado, clasificación y limpieza de datos se realiza en memoria con Pandas, sin depender de bases de datos externas ni servicios cloud de pago. La única dependencia externa es la API de Google Gemini para la generación del lenguaje conversacional, y la API de clima para advertencias en tiempo real.
 
 El sistema está construido con una filosofía de **desarrollo fragmentado y modular**, donde cada componente del pipeline (detección de intención → filtrado de datos → generación de respuesta) es independiente, testeable y reemplazable.
+
+---
+
+## Documentacion
+
+El archivo [`INFORME_DESARROLLO.md`](INFORME_DESARROLLO.md) contiene la bitácora técnica completa del proyecto: arquitectura, cronologia de desarrollo, problemas resueltos, decisiones de diseño, edge cases y métricas de código.

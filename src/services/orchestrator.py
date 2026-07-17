@@ -101,6 +101,38 @@ MENSAJE_FUERA_DE_DOMINIO = (
     "Solo estoy capacitado para recomendarte actividades deportivas y recreativas al aire libre."
 )
 
+CIUDADES_EXTERIOR_KEYWORDS = {
+    "necochea", "miramar", "villa gesell", "pinamar", "carilo",
+    "san clemente", "la lucila del mar", "mar de ajo",
+    "san bernardo", "costa chica", "costa azul", "mar del tuyu",
+    "santa teresita", "partido de la costa",
+    "tandil", "balcarce", "loberia", "chascomus", "dolores",
+    "ayacucho", "rauch",
+    "buenos aires", "la plata", "rosario", "cordoba",
+    "bariloche", "mendoza", "salta", "neuquen",
+    "san juan", "san luis", "santa fe", "ushuaia",
+    "el calafate", "rio gallegos", "concepcion del uruguay",
+}
+
+MENSAJE_OTRA_CIUDAD = (
+    "Soy Ginga, tu asistente de turismo deportivo en Mar del Plata. "
+    "Por el momento solo estoy preparada para recomendarte actividades "
+    "deportivas y recreativas en la ciudad de Mar del Plata. "
+    "¿Te gustaría que te recomiende algo para hacer en la Feliz?"
+)
+
+
+def _es_otra_ciudad(message: str) -> bool:
+    msg = _normalize(message)
+    menciona_mdp = (
+        "mar del plata" in msg
+        or bool(re.search(r'\bmdp\b', msg))
+        or any(_kw_in_text(kw, msg) for kw in ZONAS_KEYWORDS)
+    )
+    if menciona_mdp:
+        return False
+    return any(_kw_in_text(kw, msg) for kw in CIUDADES_EXTERIOR_KEYWORDS)
+
 
 def _es_categoria_playa_valida(cat_norm: str) -> bool:
     """Inclusivo: solo permite categorías que matcheen las permitidas."""
@@ -399,6 +431,16 @@ async def recommend(message: str) -> dict:
                 "advertencias": [],
                 "intent": intent,
                 "response": MENSAJE_FUERA_DE_DOMINIO,
+                "time_warning": None,
+            }
+
+        if _es_otra_ciudad(message):
+            return {
+                "items": [],
+                "weather": weather,
+                "advertencias": [],
+                "intent": intent,
+                "response": MENSAJE_OTRA_CIUDAD,
                 "time_warning": None,
             }
 
