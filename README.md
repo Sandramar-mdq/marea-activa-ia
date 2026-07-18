@@ -20,44 +20,46 @@ Desarrollo de un sistema de recomendación inteligente bajo arquitectura de agen
 
 ---
 
-## Guía de Instalación y Ejecución
+Pasos para la Instalación y Configuración
+1. Clonar el repositorio
+Abre una terminal y ejecuta los siguientes comandos para clonar el proyecto e ingresar a la carpeta:
 
-### Prerrequisitos
+git clone https://github.com/Sandramar-mdq/marea-activa-ia.git
+cd marea-activa-ia
 
-- Python 3.10 o superior
-- pip
-- Una clave válida de la API de Google Gemini
+2. Crear y activar el entorno virtual
+Es necesario aislar las dependencias del proyecto. Ejecuta según tu sistema operativo:
 
-### Pasos
+En Windows (CMD / PowerShell):
+python -m venv .venv
+..venv\Scripts\activate
 
-1. **Clonar el repositorio**
+En Linux / macOS:
+python3 -m venv .venv
+source .venv/bin/activate
 
-```bash
-git clone https://github.com/<tu-usuario>/marea_activa.git
-cd marea_activa
-```
+3. Instalar dependencias
+Con el entorno virtual activo, instala las librerías necesarias ejecutando:
 
-2. **Instalar dependencias**
-
-```bash
 pip install -r requirements.txt
-```
 
-3. **Configurar variables de entorno**
+4. Configurar variables de entorno
+Crea un archivo llamado .env en la raíz del proyecto y añade tu clave de API de Gemini:
 
-Crear un archivo `.env` en la raíz del proyecto con la siguiente variable:
+GEMINI_API_KEY=tu_clave_aquí
 
-```
-GEMINI_API_KEY=tu_clave_aqui
-```
+Ejecución del Servidor
+Opción Rápida (Solo Windows)
+Si estás en Windows, puedes iniciar el backend y abrir automáticamente la documentación interactiva en tu navegador haciendo doble clic sobre el archivo de automatización o ejecutando en la terminal:
 
-4. **Ejecutar el servidor**
+iniciar_servidor.bat
 
-```bash
-uvicorn src.main:app --reload --reload-dir src
-```
+Opción Manual (Cualquier Sistema Operativo)
+Si prefieres levantar el proceso de forma manual o estás en Linux/macOS, asegúrate de tener el entorno activo y ejecuta:
 
-El servidor estará disponible en `http://localhost:8000`.
+python -m uvicorn src.main:app --reload --reload-dir src
+
+El servidor estará disponible en http://localhost:8000. Puedes probar los endpoints directamente desde la interfaz interactiva de Swagger UI en http://localhost:8000/docs.
 
 ---
 
