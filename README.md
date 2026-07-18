@@ -20,45 +20,47 @@ Desarrollo de un sistema de recomendación inteligente bajo arquitectura de agen
 
 ---
 
-Pasos para la Instalación y Configuración
-1. Clonar el repositorio
-Abre una terminal y ejecuta los siguientes comandos para clonar el proyecto e ingresar a la carpeta:
-
+###Pasos para la Instalación y Configuración
+##1. Clonar el repositorio
+```bash
 git clone https://github.com/Sandramar-mdq/marea-activa-ia.git
 cd marea-activa-ia
+```
 
-2. Crear y activar el entorno virtual
+##2. Crear y activar el entorno virtual
 Es necesario aislar las dependencias del proyecto. Ejecuta según tu sistema operativo:
 
 En Windows (CMD / PowerShell):
+```bash
 python -m venv .venv
 ..venv\Scripts\activate
-
+```
 En Linux / macOS:
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
-
-3. Instalar dependencias
+```
+##3. Instalar dependencias
 Con el entorno virtual activo, instala las librerías necesarias ejecutando:
-
+```bash
 pip install -r requirements.txt
-
-4. Configurar variables de entorno
+```
+##4. Configurar variables de entorno
 Crea un archivo llamado .env en la raíz del proyecto y añade tu clave de API de Gemini:
 
 GEMINI_API_KEY=tu_clave_aquí
 
 Ejecución del Servidor
 Opción Rápida (Solo Windows)
-Si estás en Windows, puedes iniciar el backend y abrir automáticamente la documentación interactiva en tu navegador haciendo doble clic sobre el archivo de automatización o ejecutando en la terminal:
-
+Si estás en Windows, podes iniciar el backend y abrir automáticamente la documentación interactiva en tu navegador haciendo doble clic sobre el archivo de automatización o ejecutando en la terminal:
+```bash
 iniciar_servidor.bat
-
+```
 Opción Manual (Cualquier Sistema Operativo)
 Si prefieres levantar el proceso de forma manual o estás en Linux/macOS, asegúrate de tener el entorno activo y ejecuta:
-
+```bash
 python -m uvicorn src.main:app --reload --reload-dir src
-
+```
 El servidor estará disponible en http://localhost:8000. Puedes probar los endpoints directamente desde la interfaz interactiva de Swagger UI en http://localhost:8000/docs.
 
 ---
