@@ -20,14 +20,14 @@ Desarrollo de un sistema de recomendación inteligente bajo arquitectura de agen
 
 ---
 
-### Pasos para la Instalación y Configuración
-## 1. Clonar el repositorio
+## Pasos para la Instalación y Configuración
+### 1. Clonar el repositorio
 ```bash
 git clone https://github.com/Sandramar-mdq/marea-activa-ia.git
 cd marea-activa-ia
 ```
 
-## 2. Crear y activar el entorno virtual
+### 2. Crear y activar el entorno virtual
 Es necesario aislar las dependencias del proyecto. Ejecuta según tu sistema operativo:
 
 En Windows (CMD / PowerShell):
@@ -40,12 +40,12 @@ En Linux / macOS:
 python3 -m venv .venv
 source .venv/bin/activate
 ```
-## 3. Instalar dependencias
+### 3. Instalar dependencias
 Con el entorno virtual activo, instala las librerías necesarias ejecutando:
 ```bash
 pip install -r requirements.txt
 ```
-## 4. Configurar variables de entorno
+### 4. Configurar variables de entorno
 Crea un archivo llamado .env en la raíz del proyecto y añade tu clave de API de Gemini:
 
 GEMINI_API_KEY=tu_clave_aquí
